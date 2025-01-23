@@ -1,45 +1,55 @@
 package com.invitarly.invitarlyweb.controller;
 
 import com.invitarly.invitarlyweb.model.Plantilla;
-import com.invitarly.invitarlyweb.service.IPlantillaService;
+import com.invitarly.invitarlyweb.service.PlantillaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 
-@RequestMapping("/api/plantillas")
 @RestController
+@RequestMapping("/api/plantillas")
 public class PlantillaController {
 
-        @Autowired
-        private IPlantillaService plantillaService;
+    @Autowired
+    private PlantillaService plantillaService;
 
-        // Obtener todas las plantillas
-        @GetMapping
-        public List<Plantilla> obtenerPlantillas() {
-            return plantillaService.obtenerPlantillas();
-        }
+    @GetMapping
+    public List<Plantilla> obtenerPlantillas() {
+        return plantillaService.obtenerPlantillas();
+    }
 
-        // Obtener plantilla por ID
-        @GetMapping("/{id}")
-        public Plantilla obtenerPlantilla(@PathVariable Long id) {
-            return plantillaService.obtenerPlantilla(id);
-        }
 
-        // Crear una nueva plantilla
-        @PostMapping
-        public ResponseEntity<Plantilla> crearPlantilla(@RequestBody Plantilla plantilla) {
-                System.out.println("Plantilla recibida: " + plantilla);
-                plantilla.getFunciones().forEach(funcion -> System.out.println("Funcion recibida: " + funcion));
-                Plantilla nuevaPlantilla = plantillaService.crearPlantilla(plantilla);
-                return ResponseEntity.ok(nuevaPlantilla);
+    @GetMapping("/{nombre}")
+    public ResponseEntity<Plantilla> obtenerPlantillaPorNombre(@PathVariable String nombre) {
+        Plantilla plantilla = plantillaService.obtenerPlantillaPorNombre(nombre);
+        if (plantilla != null) {
+            return ResponseEntity.ok(plantilla);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+    }
 
-        // Borrar plantilla por ID
-        @DeleteMapping("/{id}")
-        public void borrarPlantilla(@PathVariable Long id) {
-            plantillaService.borrarPlantilla(id);
+    @PostMapping
+    public ResponseEntity<?> crearPlantilla(@RequestBody Plantilla plantilla) {
+        try {
+            Plantilla nuevaPlantilla = plantillaService.guardarPlantilla(plantilla);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevaPlantilla);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear la plantilla");
         }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> eliminarPlantilla(@PathVariable Long id) {
+        try {
+            plantillaService.eliminarPlantilla(id);
+            return ResponseEntity.ok("Plantilla eliminada exitosamente.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Plantilla no encontrada");
+        }
+    }
 }

@@ -1,10 +1,12 @@
 package com.invitarly.invitarlyweb.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
-public class Plantilla {
+public class Plan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -15,8 +17,14 @@ public class Plantilla {
 
     private String imagen;
 
+    private Double precio;
+
+    @ElementCollection
+    private List<String> funcionalidades;
 
     // Getters y Setters
+
+
     public Long getId() {
         return id;
     }
@@ -49,4 +57,19 @@ public class Plantilla {
         this.imagen = imagen;
     }
 
+    public Double getPrecio() {
+        return precio;
+    }
+
+    public void setPrecio(Double precio) {
+        this.precio = precio;
+    }
+
+    public List<String> getFuncionalidades() {
+        return funcionalidades;
+    }
+
+    public void setFuncionalidades(List<String> funcionalidades) {
+        this.funcionalidades = funcionalidades;
+    }
 }
