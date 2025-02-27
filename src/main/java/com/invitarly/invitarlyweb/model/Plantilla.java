@@ -1,6 +1,5 @@
 package com.invitarly.invitarlyweb.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -16,7 +15,6 @@ public class Plantilla {
     private String imagen;
 
 
-    // Getters y Setters
     public Long getId() {
         return id;
     }

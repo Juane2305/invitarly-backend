@@ -32,7 +32,7 @@ public class PlanService {
     }
 
     public List<String> obtenerFuncionalidadesPorNombre(String nombre) {
-        Plan plan = obtenerPlanPorNombre(nombre); // Llama al método obtenerPlanPorNombre.
-        return plan.getFuncionalidades(); // Retorna las funcionalidades asociadas al plan.
+        Plan plan = obtenerPlanPorNombre(nombre);
+        return plan.getFuncionalidades();
     }
 }

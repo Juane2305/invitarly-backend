@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import java.util.Base64;  // <-- Usamos Base64 nativo de Java 11+
+import java.util.Base64;
 import java.util.Date;
 
 @Component
@@ -32,7 +32,6 @@ public class JwtUtil {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationMs);
 
-        // En 0.9.1, signWith recibe (SignatureAlgorithm alg, byte[] key)
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(now)

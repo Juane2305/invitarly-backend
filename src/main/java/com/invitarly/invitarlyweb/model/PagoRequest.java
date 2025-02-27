@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 
 public class PagoRequest {
 
-    // Constructor vacío para la deserialización de Jackson
     public PagoRequest() {
     }
 
@@ -13,25 +12,22 @@ public class PagoRequest {
     private int cantidad;
     private BigDecimal precioUnitario;
 
-    // Datos del cliente
     private String nombre;
     private String apellido;
     private String email;
     private String telefono;
 
-    // Datos personalizados de la plantilla
-    private String novios; // Nombres de los novios
-    private String fechaHora; // Fecha y hora en formato String
-    private String datosBancarios; // Datos bancarios
-    private String dressCode; // Dress Code
-    private String mensaje; // Mensaje para los invitados
-    private String linkEvento; // Link de Google Maps del evento
-    private String linkCeremonia; // Link de Google Maps de la ceremonia
-    private String cancion; // Nombre o link de la canción
-    private String instagramWall; // Link al perfil de Instagram
-    private String comentariosAdicionales; // Cualquier detalle extra
+    private String novios;
+    private String fechaHora;
+    private String datosBancarios;
+    private String dressCode;
+    private String mensaje;
+    private String linkEvento;
+    private String linkCeremonia;
+    private String cancion;
+    private String instagramWall;
+    private String comentariosAdicionales;
 
-    // Getters y Setters de todos los campos
 
     public String getTitulo() {
         return titulo;

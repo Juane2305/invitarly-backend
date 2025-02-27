@@ -28,7 +28,6 @@ public class LoginController {
         String username = loginData.get("username");
         String password = loginData.get("password");
 
-        // Autenticar con Spring Security
         try {
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(username, password);
@@ -37,11 +36,9 @@ public class LoginController {
             return ResponseEntity.status(401).body("Usuario o contraseña inválidos");
         }
 
-        // Cargar detalles del usuario y generar JWT
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         String jwt = jwtUtil.generateToken(userDetails);
 
-        // Retornar el token
         return ResponseEntity.ok(Map.of("token", jwt));
     }
 }

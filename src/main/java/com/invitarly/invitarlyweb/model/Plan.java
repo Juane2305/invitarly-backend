@@ -1,6 +1,5 @@
 package com.invitarly.invitarlyweb.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -22,7 +21,6 @@ public class Plan {
     @ElementCollection
     private List<String> funcionalidades;
 
-    // Getters y Setters
 
 
     public Long getId() {

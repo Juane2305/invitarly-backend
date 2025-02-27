@@ -1,7 +1,7 @@
 package com.invitarly.invitarlyweb.controller;
 
 import com.invitarly.invitarlyweb.model.PagoRequest;
-import com.invitarly.invitarlyweb.model.Venta; // Import agregado para utilizar la clase Venta
+import com.invitarly.invitarlyweb.model.Venta;
 import com.invitarly.invitarlyweb.repository.VentaRepository;
 import com.invitarly.invitarlyweb.service.EmailService;
 import com.invitarly.invitarlyweb.util.PlanPlantillaPrecio;
@@ -43,9 +43,7 @@ public class PagoController {
         this.emailService = emailService;
     }
 
-    /**
-     * Endpoint para crear una preferencia de pago en Mercado Pago.
-     */
+
     @PostMapping("/crear-preferencia")
     public ResponseEntity<String> crearPreferencia(
             @RequestParam String plan,
@@ -53,7 +51,6 @@ public class PagoController {
             @RequestBody PagoRequest request
     ) {
         try {
-            // -- Logs para depurar --
             logger.info("=== [crear-preferencia] Se recibió el Request con los siguientes datos ===");
             logger.info("Plan: {}, Plantilla: {}", plan, plantilla);
             logger.info("Nombre: {}, Apellido: {}, Email: {}, Telefono: {}",
@@ -80,7 +77,6 @@ public class PagoController {
                 return ResponseEntity.badRequest().body("Combinación de plan y plantilla no válida.");
             }
 
-            // Crear el ítem de la preferencia
             PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
                     .title("Plantilla: " + plantilla + " | Plan: " + plan)
                     .description(request.getDescripcion() != null
@@ -91,21 +87,18 @@ public class PagoController {
                     .currencyId("ARS")
                     .build();
 
-            // Configurar URLs de retorno (opcional)
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success("http://localhost:5173/pago-exitoso")
-                    .failure("http://localhost:5173/pago-fallido")
-                    .pending("http://localhost:5173/pago-pendiente")
+                    .success("http://www.invitarly.com/pago-exitoso")
+                    .failure("http://www.invitarly.com/pago-fallido")
+                    .pending("http://www.invitarly.com/pago-pendiente")
                     .build();
 
-            // Datos mínimos del pagador
             PreferencePayerRequest payer = PreferencePayerRequest.builder()
                     .name(request.getNombre())
                     .surname(request.getApellido())
                     .email(request.getEmail())
                     .build();
 
-            // Guardamos todos los datos en metadata para recuperarlos en el webhook
             Map<String, Object> metadata = new HashMap<>();
             metadata.put("plan", plan);
             metadata.put("plantilla", plantilla);
@@ -127,29 +120,24 @@ public class PagoController {
 
             logger.info("Metadata generada: {}", metadata);
 
-            // Crear la venta en el sistema para generar un id interno
             Venta venta = new Venta(request.getNombre(), "EN_PROCESO");
             venta = ventaRepository.save(venta);
 
-            // Construir la preferencia utilizando el id interno en external_reference
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(Collections.singletonList(itemRequest))
                     .backUrls(backUrls)
                     .payer(payer)
                     .autoReturn("approved")
                     .metadata(metadata)
-                    .externalReference("venta-" + venta.getId()) // Se utiliza el id de la venta
+                    .externalReference("venta-" + venta.getId())
                     .build();
 
-            // Crear la preferencia en Mercado Pago
             PreferenceClient client = new PreferenceClient();
             Preference preference = client.create(preferenceRequest);
 
-            // Log extra: ID de la preferencia y el link de pago
             logger.info("Preferencia creada con ID: {}", preference.getId());
             logger.info("init_point: {}", preference.getInitPoint());
 
-            // Retornamos el init_point
             return ResponseEntity.ok(preference.getInitPoint());
 
         } catch (MPException | MPApiException e) {
@@ -158,9 +146,7 @@ public class PagoController {
         }
     }
 
-    /**
-     * Endpoint para manejar los webhooks de Mercado Pago.
-     */
+
     @PostMapping("/webhooks")
     public ResponseEntity<String> handleWebhook(@RequestBody Map<String, Object> payload) {
         try {
@@ -177,7 +163,6 @@ public class PagoController {
                 String paymentIdStr = data.get("id").toString();
                 logger.info("Procesando pago con ID: {}", paymentIdStr);
 
-                // Consultar detalles del pago en Mercado Pago
                 Long paymentId = Long.valueOf(paymentIdStr);
                 PaymentClient paymentClient = new PaymentClient();
                 Payment payment = paymentClient.get(paymentId);
@@ -192,11 +177,9 @@ public class PagoController {
                 String externalReference = payment.getExternalReference();
                 logger.info("Estado del pago en Mercado Pago: {}, External Reference: {}", estado, externalReference);
 
-                // Revisamos la metadata que nos manda MP
                 Map<String, Object> metadata = payment.getMetadata();
                 logger.info("Metadata retornada por Mercado Pago: {}", metadata);
 
-                // Actualizar la venta asociada al external_reference
                 if (externalReference != null && externalReference.startsWith("venta-")) {
                     String ventaIdStr = externalReference.split("-")[1];
                     Long ventaId = Long.valueOf(ventaIdStr);
@@ -208,13 +191,11 @@ public class PagoController {
                     });
                 }
 
-                // Solo si el pago está aprobado, enviamos correos
                 if ("approved".equalsIgnoreCase(estado)) {
                     if (metadata == null) {
                         metadata = Collections.emptyMap();
                     }
 
-                    // Recuperamos datos de metadata
                     String plan = (String) metadata.get("plan");
                     String plantilla = (String) metadata.get("plantilla");
                     String nombre = (String) metadata.get("nombre");
@@ -232,7 +213,6 @@ public class PagoController {
                     String linkCeremonia = (String) metadata.get("link_ceremonia");
                     String comentariosAdicionales = (String) metadata.get("comentarios_adicionales");
 
-                    // Correo al Vendedor
                     String asuntoPropietario = "Pago confirmado en Invitarly (ID " + paymentIdStr + ")";
                     String mensajePropietario = String.format(
                             "¡Se ha confirmado un pago!\n\n"
@@ -266,7 +246,6 @@ public class PagoController {
 
                     emailService.enviarCorreo(correoPropietario, asuntoPropietario, mensajePropietario);
 
-                    // Correo al Cliente
                     String asuntoCliente = "¡Tu pago ha sido confirmado!";
                     String mensajeCliente = String.format(
                             "Hola %s %s,\n\n"

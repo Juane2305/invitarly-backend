@@ -30,13 +30,10 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth ->
                 auth
-                        // Decimos: cualquier request a /api/admin/** requiere token
                         .requestMatchers("/api/admin/**").authenticated()
-                        // Todas las demás rutas se permiten sin token
                         .anyRequest().permitAll()
         );
 
-        // Insertar tu filtro de JWT
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -44,9 +41,7 @@ public class SecurityConfig {
 
 
 
-    /**
-     * AuthenticationManager para usar en el LoginController.
-     */
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();

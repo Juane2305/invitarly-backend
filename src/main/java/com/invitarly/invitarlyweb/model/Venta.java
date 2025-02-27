@@ -11,9 +11,8 @@ public class Venta {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Datos básicos de la venta
-    private String clienteNombre;   // Nombre del cliente/comprador
-    private String estado;         // EN_PROCESO, ENTREGADO, CANCELADO, etc.
+    private String clienteNombre;
+    private String estado;
 
     private LocalDateTime fechaCreacion;
 
@@ -26,7 +25,6 @@ public class Venta {
         this.fechaCreacion = LocalDateTime.now();
     }
 
-    // GETTERS y SETTERS
 
 
     public Long getId() {

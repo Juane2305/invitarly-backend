@@ -12,10 +12,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.filter.GenericFilterBean;
+
 import java.io.IOException;
 
 @Component
-public class JwtRequestFilter extends GenericFilter {
+public class JwtRequestFilter extends GenericFilterBean {
 
     @Autowired
     private JwtUtil jwtUtil;

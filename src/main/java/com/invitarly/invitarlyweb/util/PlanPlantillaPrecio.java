@@ -8,18 +8,17 @@ public class PlanPlantillaPrecio {
     private static final Map<String, Double> precios = new HashMap<>();
 
     static {
-        // Configurar precios por combinación de plan y plantilla
-        precios.put("basico-vintage", 25000.0);
-        precios.put("basico-moderna", 25000.0);
-        precios.put("basico-elegante", 25000.0);
+        precios.put("basico-vintage", 28000.0);
+        precios.put("basico-moderna", 28000.0);
+        precios.put("basico-elegante", 28000.0);
 
-        precios.put("silver-vintage", 28000.0);
-        precios.put("silver-moderna", 28000.0);
-        precios.put("silver-elegante", 28000.0);
+        precios.put("silver-vintage", 35000.0);
+        precios.put("silver-moderna", 35000.0);
+        precios.put("silver-elegante", 35000.0);
 
-        precios.put("gold-vintage", 35000.0);
-        precios.put("gold-moderna", 10.0);
-        precios.put("gold-elegante", 35000.0);
+        precios.put("gold-vintage", 40000.0);
+        precios.put("gold-moderna", 40000.0);
+        precios.put("gold-elegante", 40000.0);
     }
 
     public static Double getPrecio(String plan, String plantilla) {
