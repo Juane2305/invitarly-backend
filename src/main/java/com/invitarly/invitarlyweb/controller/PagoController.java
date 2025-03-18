@@ -43,7 +43,6 @@ public class PagoController {
         this.emailService = emailService;
     }
 
-
     @PostMapping("/crear-preferencia")
     public ResponseEntity<String> crearPreferencia(
             @RequestParam String plan,
@@ -180,22 +179,41 @@ public class PagoController {
                 Map<String, Object> metadata = payment.getMetadata();
                 logger.info("Metadata retornada por Mercado Pago: {}", metadata);
 
+                if (metadata == null || metadata.isEmpty()) {
+                    logger.warn("El pago aprobado no tiene metadata. Se ignora el webhook.");
+                    return ResponseEntity.ok("Webhook ignorado: falta metadata.");
+                }
+
+                if (payment.getPayer() == null || payment.getPayer().getEmail() == null) {
+                    logger.warn("No se encontró email del pagador. Se ignora el webhook.");
+                    return ResponseEntity.ok("Webhook ignorado: falta email del pagador.");
+                }
+
+                if (payment.getTransactionAmount() == null || payment.getTransactionAmount().compareTo(BigDecimal.ZERO) <= 0) {
+                    logger.warn("El pago tiene un monto inválido (cero o negativo). Se ignora el webhook.");
+                    return ResponseEntity.ok("Webhook ignorado: monto inválido.");
+                }
+
+                // =====================
+                // 1) Buscamos la venta
+                // =====================
+                Venta ventaEntity = null;
                 if (externalReference != null && externalReference.startsWith("venta-")) {
                     String ventaIdStr = externalReference.split("-")[1];
                     Long ventaId = Long.valueOf(ventaIdStr);
 
-                    ventaRepository.findById(ventaId).ifPresent(venta -> {
-                        venta.setEstado(estado.toUpperCase());
-                        ventaRepository.save(venta);
-                        logger.info("Estado de la venta {} actualizado a: {}", ventaId, estado);
-                    });
+                    ventaEntity = ventaRepository.findById(ventaId).orElse(null);
+                    if (ventaEntity != null) {
+                        // (Aún no actualizamos la venta; primero veremos si está repetido)
+                        logger.info("Venta {} encontrada en la BD con estado: {}", ventaId, ventaEntity.getEstado());
+                    }
                 }
 
+                // ============================
+                // 2) Solo si estado=approved
+                // ============================
                 if ("approved".equalsIgnoreCase(estado)) {
-                    if (metadata == null) {
-                        metadata = Collections.emptyMap();
-                    }
-
+                    // Chequeamos plan, plantilla, etc., como ya haces:
                     String plan = (String) metadata.get("plan");
                     String plantilla = (String) metadata.get("plantilla");
                     String nombre = (String) metadata.get("nombre");
@@ -213,6 +231,29 @@ public class PagoController {
                     String linkCeremonia = (String) metadata.get("link_ceremonia");
                     String comentariosAdicionales = (String) metadata.get("comentarios_adicionales");
 
+                    if (plan == null || plantilla == null || nombre == null || emailCliente == null) {
+                        logger.warn("Faltan datos esenciales en el pago aprobado. Se ignora el webhook.");
+                        return ResponseEntity.ok("Webhook ignorado: falta información esencial.");
+                    }
+
+                    // ===================================
+                    // 3) Verificamos si ya estaba APPROVED
+                    // ===================================
+                    if (ventaEntity != null) {
+                        if ("APPROVED".equalsIgnoreCase(ventaEntity.getEstado())) {
+                            logger.info("La venta ya estaba en estado APPROVED. Se ignora reintento. (PaymentID: {})", paymentIdStr);
+                            return ResponseEntity.ok("Ya estaba en estado APPROVED. Ignorando reintento.");
+                        } else {
+                            // Si no estaba APPROVED, la actualizamos
+                            ventaEntity.setEstado("APPROVED");
+                            ventaRepository.save(ventaEntity);
+                            logger.info("Estado de la venta {} actualizado a: APPROVED", ventaEntity.getId());
+                        }
+                    }
+
+                    // ======================
+                    // 4) Enviar los correos
+                    // ======================
                     String asuntoPropietario = "Pago confirmado en Invitarly (ID " + paymentIdStr + ")";
                     String mensajePropietario = String.format(
                             "¡Se ha confirmado un pago!\n\n"
@@ -260,11 +301,24 @@ public class PagoController {
                     );
 
                     emailService.enviarCorreo(emailCliente, asuntoCliente, mensajeCliente);
-
                     logger.info("Correos enviados exitosamente para el pago ID: {}", paymentIdStr);
+
                 } else {
                     logger.info("El pago con ID {} no está aprobado. Estado actual: {}", paymentIdStr, estado);
+
+                    // Si deseas, puedes actualizar la venta a PENDING, IN_PROCESS, etc.
+                    // O dejarlo como está.
+                    if (externalReference != null && externalReference.startsWith("venta-")) {
+                        String ventaIdStr = externalReference.split("-")[1];
+                        Long ventaId = Long.valueOf(ventaIdStr);
+                        ventaRepository.findById(ventaId).ifPresent(venta -> {
+                            venta.setEstado(estado.toUpperCase());
+                            ventaRepository.save(venta);
+                            logger.info("Estado de la venta {} actualizado a: {}", ventaId, estado);
+                        });
+                    }
                 }
+
             } else {
                 logger.info("El evento recibido no es de tipo 'payment'. Se recibió: {}", eventType);
             }

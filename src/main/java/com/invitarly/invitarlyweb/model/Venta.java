@@ -16,6 +16,7 @@ public class Venta {
 
     private LocalDateTime fechaCreacion;
 
+
     public Venta() {
     }
 
