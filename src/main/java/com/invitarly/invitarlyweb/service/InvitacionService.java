@@ -67,6 +67,15 @@ public class InvitacionService {
         invitacionExistente.setMensaje_personalizado(datosNuevos.getMensaje_personalizado());
         invitacionExistente.setLink_asistencia(datosNuevos.getLink_asistencia());
         invitacionExistente.setFecha_tokyo(datosNuevos.getFecha_tokyo());
+        invitacionExistente.setTipoEvento(datosNuevos.getTipoEvento()); // "boda", "xv", "bautismo", etc.
+        invitacionExistente.setNombreQuinceanera(datosNuevos.getNombreQuinceanera());
+        invitacionExistente.setTematicaXV(datosNuevos.getTematicaXV());
+        invitacionExistente.setNombreBebe(datosNuevos.getNombreBebe());
+        invitacionExistente.setNombrePadres(datosNuevos.getNombrePadres());
+        invitacionExistente.setPadrinos(datosNuevos.getPadrinos());
+        invitacionExistente.setHora_fin_evento(datosNuevos.getHora_fin_evento());
+        invitacionExistente.setFondo(datosNuevos.getFondo());
+        invitacionExistente.setFondoMobile(datosNuevos.getFondoMobile());
 
         return invitacionRepository.save(invitacionExistente);
     }

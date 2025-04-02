@@ -28,6 +28,13 @@ public class PagoRequest {
     private String instagramWall;
     private String comentariosAdicionales;
 
+    private String nombreQuinceanera;
+    private String tematicaXV;
+    private String nombreBebe;
+    private String nombrePadres;
+    private String padrinos;
+    private String linkCeremoniaBautismo;
+    private String linkFestejoBautismo;
 
     public String getTitulo() {
         return titulo;
@@ -171,5 +178,61 @@ public class PagoRequest {
 
     public void setComentariosAdicionales(String comentariosAdicionales) {
         this.comentariosAdicionales = comentariosAdicionales;
+    }
+
+    public String getNombreQuinceanera() {
+        return nombreQuinceanera;
+    }
+
+    public void setNombreQuinceanera(String nombreQuinceanera) {
+        this.nombreQuinceanera = nombreQuinceanera;
+    }
+
+    public String getTematicaXV() {
+        return tematicaXV;
+    }
+
+    public void setTematicaXV(String tematicaXV) {
+        this.tematicaXV = tematicaXV;
+    }
+
+    public String getNombreBebe() {
+        return nombreBebe;
+    }
+
+    public void setNombreBebe(String nombreBebe) {
+        this.nombreBebe = nombreBebe;
+    }
+
+    public String getNombrePadres() {
+        return nombrePadres;
+    }
+
+    public void setNombrePadres(String nombrePadres) {
+        this.nombrePadres = nombrePadres;
+    }
+
+    public String getPadrinos() {
+        return padrinos;
+    }
+
+    public void setPadrinos(String padrinos) {
+        this.padrinos = padrinos;
+    }
+
+    public String getLinkCeremoniaBautismo() {
+        return linkCeremoniaBautismo;
+    }
+
+    public void setLinkCeremoniaBautismo(String linkCeremoniaBautismo) {
+        this.linkCeremoniaBautismo = linkCeremoniaBautismo;
+    }
+
+    public String getLinkFestejoBautismo() {
+        return linkFestejoBautismo;
+    }
+
+    public void setLinkFestejoBautismo(String linkFestejoBautismo) {
+        this.linkFestejoBautismo = linkFestejoBautismo;
     }
 }

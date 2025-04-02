@@ -10,6 +10,13 @@ public class Invitacion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "tipo_evento")
+    private String tipoEvento;
+    private String nombreQuinceanera;
+    private String tematicaXV;
+    private String nombreBebe;
+    private String nombrePadres;
+    private String padrinos;
     private String novios;
     private String fecha_evento;
     private String fecha_comienzo_calendario;
@@ -19,6 +26,7 @@ public class Invitacion {
     private String hora_ceremonia_religiosa;
     private String hora_civil;
     private String hora_evento;
+    private String hora_fin_evento;
     private String fecha_cuenta_regresiva;
     private String cbu;
     private String alias;
@@ -41,12 +49,20 @@ public class Invitacion {
     private String mensaje_personalizado;
     private String link_asistencia;
     private String fecha_tokyo;
+    private String fondo;
+    private String fondoMobile;
 
     public Invitacion() {
     }
 
-    public Invitacion(Long id, String novios, String fecha_evento, String fecha_comienzo_calendario, String fecha_fin_calendario, String nombre_iglesia, String nombre_salon, String hora_ceremonia_religiosa, String hora_civil, String hora_evento, String fecha_cuenta_regresiva, String cbu, String alias, String banco, String cancion, String plantilla_elegida, String urlPersonalizada, String imagenes, String estado, String plan, String nombre_completo, String linkCeremonia, String linkFiesta, String linkCalendario, String dressCode, String ig_user, String mensaje_personalizado, String link_asistencia, String fecha_tokyo) {
+    public Invitacion(Long id, String tipoEvento, String nombreQuinceanera, String tematicaXV, String nombreBebe, String nombrePadres, String padrinos, String novios, String fecha_evento, String fecha_comienzo_calendario, String fecha_fin_calendario, String nombre_iglesia, String nombre_salon, String hora_ceremonia_religiosa, String hora_civil, String hora_evento, String hora_fin_evento, String fecha_cuenta_regresiva, String cbu, String alias, String banco, String cancion, String plantilla_elegida, String urlPersonalizada, String imagenes, String estado, String plan, String nombre_completo, String linkCeremonia, String linkFiesta, String linkCalendario, String dressCode, String ig_user, String mensaje_personalizado, String link_asistencia, String fecha_tokyo, String fondo, String fondoMobile) {
         this.id = id;
+        this.tipoEvento = tipoEvento;
+        this.nombreQuinceanera = nombreQuinceanera;
+        this.tematicaXV = tematicaXV;
+        this.nombreBebe = nombreBebe;
+        this.nombrePadres = nombrePadres;
+        this.padrinos = padrinos;
         this.novios = novios;
         this.fecha_evento = fecha_evento;
         this.fecha_comienzo_calendario = fecha_comienzo_calendario;
@@ -56,6 +72,7 @@ public class Invitacion {
         this.hora_ceremonia_religiosa = hora_ceremonia_religiosa;
         this.hora_civil = hora_civil;
         this.hora_evento = hora_evento;
+        this.hora_fin_evento = hora_fin_evento;
         this.fecha_cuenta_regresiva = fecha_cuenta_regresiva;
         this.cbu = cbu;
         this.alias = alias;
@@ -75,10 +92,60 @@ public class Invitacion {
         this.mensaje_personalizado = mensaje_personalizado;
         this.link_asistencia = link_asistencia;
         this.fecha_tokyo = fecha_tokyo;
+        this.fondo = fondo;
+        this.fondoMobile = fondoMobile;
     }
 
     public Long getId() {
         return id;
+    }
+
+    public String getTipoEvento() {
+        return tipoEvento;
+    }
+
+    public void setTipoEvento(String tipoEvento) {
+        this.tipoEvento = tipoEvento;
+    }
+
+    public String getNombreQuinceanera() {
+        return nombreQuinceanera;
+    }
+
+    public void setNombreQuinceanera(String nombreQuinceanera) {
+        this.nombreQuinceanera = nombreQuinceanera;
+    }
+
+    public String getTematicaXV() {
+        return tematicaXV;
+    }
+
+    public void setTematicaXV(String tematicaXV) {
+        this.tematicaXV = tematicaXV;
+    }
+
+    public String getNombreBebe() {
+        return nombreBebe;
+    }
+
+    public void setNombreBebe(String nombreBebe) {
+        this.nombreBebe = nombreBebe;
+    }
+
+    public String getNombrePadres() {
+        return nombrePadres;
+    }
+
+    public void setNombrePadres(String nombrePadres) {
+        this.nombrePadres = nombrePadres;
+    }
+
+    public String getPadrinos() {
+        return padrinos;
+    }
+
+    public void setPadrinos(String padrinos) {
+        this.padrinos = padrinos;
     }
 
     public void setId(Long id) {
@@ -139,6 +206,14 @@ public class Invitacion {
 
     public void setHora_evento(String hora_evento) {
         this.hora_evento = hora_evento;
+    }
+
+    public String getHora_fin_evento() {
+        return hora_fin_evento;
+    }
+
+    public void setHora_fin_evento(String hora_fin_evento) {
+        this.hora_fin_evento = hora_fin_evento;
     }
 
     public String getHora_ceremonia_religiosa() {
@@ -307,5 +382,21 @@ public class Invitacion {
 
     public void setFecha_tokyo(String fecha_tokyo) {
         this.fecha_tokyo = fecha_tokyo;
+    }
+
+    public String getFondo() {
+        return fondo;
+    }
+
+    public void setFondo(String fondo) {
+        this.fondo = fondo;
+    }
+
+    public String getFondoMobile() {
+        return fondoMobile;
+    }
+
+    public void setFondoMobile(String fondo_mobile) {
+        this.fondoMobile = fondo_mobile;
     }
 }

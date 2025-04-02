@@ -12,6 +12,8 @@ public class Plan {
 
     private String nombre;
 
+    private String nombreVisual;
+
     private String descripcion;
 
     private String imagen;
@@ -20,6 +22,8 @@ public class Plan {
 
     @ElementCollection
     private List<String> funcionalidades;
+
+    private String tipoEvento;
 
 
 
@@ -37,6 +41,14 @@ public class Plan {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public String getNombreVisual() {
+        return nombreVisual;
+    }
+
+    public void setNombreVisual(String nombreVisual) {
+        this.nombreVisual = nombreVisual;
     }
 
     public String getDescripcion() {
@@ -70,4 +82,15 @@ public class Plan {
     public void setFuncionalidades(List<String> funcionalidades) {
         this.funcionalidades = funcionalidades;
     }
+
+    public String getTipoEvento() {
+        return tipoEvento;
+    }
+
+    public void setTipoEvento(String tipoEvento) {
+        this.tipoEvento = tipoEvento;
+    }
 }
+
+
+

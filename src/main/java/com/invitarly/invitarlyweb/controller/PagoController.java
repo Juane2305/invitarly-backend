@@ -6,7 +6,11 @@ import com.invitarly.invitarlyweb.repository.VentaRepository;
 import com.invitarly.invitarlyweb.service.EmailService;
 import com.invitarly.invitarlyweb.util.PlanPlantillaPrecio;
 import com.mercadopago.client.payment.PaymentClient;
-import com.mercadopago.client.preference.*;
+import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
+import com.mercadopago.client.preference.PreferenceClient;
+import com.mercadopago.client.preference.PreferenceItemRequest;
+import com.mercadopago.client.preference.PreferencePayerRequest;
+import com.mercadopago.client.preference.PreferenceRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
@@ -54,18 +58,33 @@ public class PagoController {
             logger.info("Plan: {}, Plantilla: {}", plan, plantilla);
             logger.info("Nombre: {}, Apellido: {}, Email: {}, Telefono: {}",
                     request.getNombre(), request.getApellido(), request.getEmail(), request.getTelefono());
+
             logger.info("Novios: {}, FechaHora: {}, DatosBancarios: {}, DressCode: {}, Mensaje: {}",
                     request.getNovios(),
                     request.getFechaHora(),
                     request.getDatosBancarios(),
                     request.getDressCode(),
                     request.getMensaje());
+
             logger.info("LinkEvento: {}, LinkCeremonia: {}, Cancion: {}, InstagramWall: {}, ComentariosAdicionales: {}",
                     request.getLinkEvento(),
                     request.getLinkCeremonia(),
                     request.getCancion(),
                     request.getInstagramWall(),
                     request.getComentariosAdicionales());
+
+            // MOSTRAMOS TAMBIÉN CAMPOS DE XV Y BAUTISMO
+            logger.info("nombreQuinceanera: {}, tematicaXV: {}",
+                    request.getNombreQuinceanera(),
+                    request.getTematicaXV());
+
+            logger.info("nombreBebe: {}, nombrePadres: {}, padrinos: {}, linkCeremoniaBautismo: {}, linkFestejoBautismo: {}",
+                    request.getNombreBebe(),
+                    request.getNombrePadres(),
+                    request.getPadrinos(),
+                    request.getLinkCeremoniaBautismo(),
+                    request.getLinkFestejoBautismo()
+            );
 
             if (plan.isEmpty() || plantilla.isEmpty()) {
                 return ResponseEntity.badRequest().body("El plan o la plantilla no pueden estar vacíos.");
@@ -77,19 +96,19 @@ public class PagoController {
             }
 
             PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
-                    .title("Plantilla: " + plantilla + " | Plan: " + plan)
+                    .title("Plantilla: " + plantilla + " | Plan: " + plan + " | " + System.currentTimeMillis())
                     .description(request.getDescripcion() != null
-                            ? request.getDescripcion()
-                            : "Invitaciones Digitales Personalizadas")
+                            ? request.getDescripcion() + " (unique: " + System.currentTimeMillis() + ")"
+                            : "Invitaciones Digitales Personalizadas (unique: " + System.currentTimeMillis() + ")")
                     .quantity(1)
                     .unitPrice(BigDecimal.valueOf(precio))
                     .currencyId("ARS")
                     .build();
 
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success("http://www.invitarly.com/pago-exitoso")
-                    .failure("http://www.invitarly.com/pago-fallido")
-                    .pending("http://www.invitarly.com/pago-pendiente")
+                    .success("https://www.invitarly.com/pago-exitoso")
+                    .failure("https://www.invitarly.com/pago-fallido")
+                    .pending("https://www.invitarly.com/pago-pendiente")
                     .build();
 
             PreferencePayerRequest payer = PreferencePayerRequest.builder()
@@ -98,6 +117,7 @@ public class PagoController {
                     .email(request.getEmail())
                     .build();
 
+            // Armamos la metadata con TODOS los campos, en snake_case
             Map<String, Object> metadata = new HashMap<>();
             metadata.put("plan", plan);
             metadata.put("plantilla", plantilla);
@@ -106,16 +126,29 @@ public class PagoController {
             metadata.put("email", request.getEmail());
             metadata.put("telefono", request.getTelefono());
             metadata.put("descripcion", request.getDescripcion());
+
+            // Campos Boda (en snake_case)
             metadata.put("novios", request.getNovios());
-            metadata.put("fechaHora", request.getFechaHora());
-            metadata.put("datosBancarios", request.getDatosBancarios());
-            metadata.put("dressCode", request.getDressCode());
+            metadata.put("fecha_hora", request.getFechaHora());
+            metadata.put("datos_bancarios", request.getDatosBancarios());
+            metadata.put("dress_code", request.getDressCode());
             metadata.put("mensaje", request.getMensaje());
             metadata.put("cancion", request.getCancion());
-            metadata.put("instagramWall", request.getInstagramWall());
-            metadata.put("linkEvento", request.getLinkEvento());
-            metadata.put("linkCeremonia", request.getLinkCeremonia());
-            metadata.put("comentariosAdicionales", request.getComentariosAdicionales());
+            metadata.put("instagram_wall", request.getInstagramWall());
+            metadata.put("link_evento", request.getLinkEvento());
+            metadata.put("link_ceremonia", request.getLinkCeremonia());
+            metadata.put("comentarios_adicionales", request.getComentariosAdicionales());
+
+            // Campos XV
+            metadata.put("nombre_quinceanera", request.getNombreQuinceanera());
+            metadata.put("tematica_xv", request.getTematicaXV());
+
+            // Campos Bautismo
+            metadata.put("nombre_bebe", request.getNombreBebe());
+            metadata.put("nombre_padres", request.getNombrePadres());
+            metadata.put("padrinos", request.getPadrinos());
+            metadata.put("link_ceremonia_bautismo", request.getLinkCeremoniaBautismo());
+            metadata.put("link_festejo_bautismo", request.getLinkFestejoBautismo());
 
             logger.info("Metadata generada: {}", metadata);
 
@@ -144,7 +177,6 @@ public class PagoController {
             return ResponseEntity.status(500).body("Error interno del servidor.");
         }
     }
-
 
     @PostMapping("/webhooks")
     public ResponseEntity<String> handleWebhook(@RequestBody Map<String, Object> payload) {
@@ -204,7 +236,6 @@ public class PagoController {
 
                     ventaEntity = ventaRepository.findById(ventaId).orElse(null);
                     if (ventaEntity != null) {
-                        // (Aún no actualizamos la venta; primero veremos si está repetido)
                         logger.info("Venta {} encontrada en la BD con estado: {}", ventaId, ventaEntity.getEstado());
                     }
                 }
@@ -213,38 +244,50 @@ public class PagoController {
                 // 2) Solo si estado=approved
                 // ============================
                 if ("approved".equalsIgnoreCase(estado)) {
-                    // Chequeamos plan, plantilla, etc., como ya haces:
+                    // Chequeamos plan, plantilla, etc.
                     String plan = (String) metadata.get("plan");
                     String plantilla = (String) metadata.get("plantilla");
+
+                    // Datos comprador
                     String nombre = (String) metadata.get("nombre");
                     String apellido = (String) metadata.get("apellido");
                     String emailCliente = (String) metadata.get("email");
                     String telefono = (String) metadata.get("telefono");
-                    String novios = (String) metadata.get("novios");
-                    String fechaHora = (String) metadata.get("fecha_hora");
-                    String datosBancarios = (String) metadata.get("datos_bancarios");
-                    String dressCode = (String) metadata.get("dress_code");
-                    String mensajePersonalizado = (String) metadata.get("mensaje");
-                    String cancion = (String) metadata.get("cancion");
-                    String instagramWall = (String) metadata.get("instagram_wall");
-                    String linkEvento = (String) metadata.get("link_evento");
-                    String linkCeremonia = (String) metadata.get("link_ceremonia");
+
+                    // Boda (en snake_case)
+                    String novios              = (String) metadata.get("novios");
+                    String fechaHora           = (String) metadata.get("fecha_hora");
+                    String datosBancarios      = (String) metadata.get("datos_bancarios");
+                    String dressCode           = (String) metadata.get("dress_code");
+                    String mensajePersonalizado= (String) metadata.get("mensaje");
+                    String cancion             = (String) metadata.get("cancion");
+                    String instagramWall       = (String) metadata.get("instagram_wall");
+                    String linkEvento          = (String) metadata.get("link_evento");
+                    String linkCeremonia       = (String) metadata.get("link_ceremonia");
                     String comentariosAdicionales = (String) metadata.get("comentarios_adicionales");
+
+                    // XV
+                    String nombreQuinceanera = (String) metadata.get("nombre_quinceanera");
+                    String tematicaXV        = (String) metadata.get("tematica_xv");
+
+                    // Bautismo
+                    String nombreBebe             = (String) metadata.get("nombre_bebe");
+                    String nombrePadres           = (String) metadata.get("nombre_padres");
+                    String padrinos               = (String) metadata.get("padrinos");
+                    String linkCeremoniaBautismo  = (String) metadata.get("link_ceremonia_bautismo");
+                    String linkFestejoBautismo    = (String) metadata.get("link_festejo_bautismo");
 
                     if (plan == null || plantilla == null || nombre == null || emailCliente == null) {
                         logger.warn("Faltan datos esenciales en el pago aprobado. Se ignora el webhook.");
                         return ResponseEntity.ok("Webhook ignorado: falta información esencial.");
                     }
 
-                    // ===================================
                     // 3) Verificamos si ya estaba APPROVED
-                    // ===================================
                     if (ventaEntity != null) {
                         if ("APPROVED".equalsIgnoreCase(ventaEntity.getEstado())) {
                             logger.info("La venta ya estaba en estado APPROVED. Se ignora reintento. (PaymentID: {})", paymentIdStr);
                             return ResponseEntity.ok("Ya estaba en estado APPROVED. Ignorando reintento.");
                         } else {
-                            // Si no estaba APPROVED, la actualizamos
                             ventaEntity.setEstado("APPROVED");
                             ventaRepository.save(ventaEntity);
                             logger.info("Estado de la venta {} actualizado a: APPROVED", ventaEntity.getId());
@@ -255,59 +298,87 @@ public class PagoController {
                     // 4) Enviar los correos
                     // ======================
                     String asuntoPropietario = "Pago confirmado en Invitarly (ID " + paymentIdStr + ")";
-                    String mensajePropietario = String.format(
-                            "¡Se ha confirmado un pago!\n\n"
-                                    + "ID de Pago: %s\n"
-                                    + "Plan: %s\n"
-                                    + "Plantilla: %s\n"
-                                    + "---------------------------------\n"
-                                    + "Datos del Comprador:\n"
-                                    + "Nombre: %s %s\n"
-                                    + "Email: %s\n"
-                                    + "Teléfono: %s\n"
-                                    + "---------------------------------\n"
-                                    + "Datos de la Invitación:\n"
-                                    + "Novios: %s\n"
-                                    + "Fecha y Hora: %s\n"
-                                    + "Link Evento: %s\n"
-                                    + "Link Ceremonia: %s\n"
-                                    + "Datos Bancarios: %s\n"
-                                    + "Dress Code: %s\n"
-                                    + "Mensaje: %s\n"
-                                    + "Canción: %s\n"
-                                    + "Instagram Wall: %s\n"
-                                    + "Comentarios Adicionales: %s\n\n"
-                                    + "¡Revisa más detalles en tu panel de Mercado Pago!",
-                            paymentIdStr, plan, plantilla,
-                            nombre, apellido, emailCliente, telefono,
-                            novios, fechaHora, linkEvento, linkCeremonia,
-                            datosBancarios, dressCode, mensajePersonalizado,
-                            cancion, instagramWall, comentariosAdicionales
-                    );
+
+                    // Construimos el cuerpo del mail con TODOS los campos
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("¡Se ha confirmado un pago!\n\n")
+                            .append("ID de Pago: ").append(paymentIdStr).append("\n")
+                            .append("Plan: ").append(plan).append("\n")
+                            .append("Plantilla: ").append(plantilla).append("\n")
+                            .append("---------------------------------\n")
+                            .append("Datos del Comprador:\n")
+                            .append("Nombre: ").append(nombre).append(" ").append(apellido).append("\n")
+                            .append("Email: ").append(emailCliente).append("\n")
+                            .append("Teléfono: ").append(telefono).append("\n")
+                            .append("---------------------------------\n")
+                            .append("Datos de la Invitación:\n");
+
+                    // Campos de Boda
+                    sb.append("Novios: ").append(novios != null ? novios : "").append("\n")
+                            .append("Fecha y Hora: ").append(fechaHora != null ? fechaHora : "").append("\n")
+                            .append("Link Evento: ").append(linkEvento != null ? linkEvento : "").append("\n")
+                            .append("Link Ceremonia: ").append(linkCeremonia != null ? linkCeremonia : "").append("\n")
+                            .append("Datos Bancarios: ").append(datosBancarios != null ? datosBancarios : "").append("\n")
+                            .append("Dress Code: ").append(dressCode != null ? dressCode : "").append("\n")
+                            .append("Mensaje: ").append(mensajePersonalizado != null ? mensajePersonalizado : "").append("\n")
+                            .append("Canción: ").append(cancion != null ? cancion : "").append("\n")
+                            .append("Instagram Wall: ").append(instagramWall != null ? instagramWall : "").append("\n")
+                            .append("Comentarios Adicionales: ").append(comentariosAdicionales != null ? comentariosAdicionales : "").append("\n\n");
+
+                    // Campos de XV
+                    sb.append("Nombre Quinceañera: ").append(nombreQuinceanera != null ? nombreQuinceanera : "").append("\n")
+                            .append("Temática XV: ").append(tematicaXV != null ? tematicaXV : "").append("\n\n");
+
+                    // Campos de Bautismo
+                    sb.append("Nombre Bebé: ").append(nombreBebe != null ? nombreBebe : "").append("\n")
+                            .append("Nombre Padres: ").append(nombrePadres != null ? nombrePadres : "").append("\n")
+                            .append("Padrinos: ").append(padrinos != null ? padrinos : "").append("\n")
+                            .append("Link Ceremonia Bautismo: ").append(linkCeremoniaBautismo != null ? linkCeremoniaBautismo : "").append("\n")
+                            .append("Link Festejo Bautismo: ").append(linkFestejoBautismo != null ? linkFestejoBautismo : "").append("\n\n");
+
+                    sb.append("¡Revisa más detalles en tu panel de Mercado Pago!");
+
+                    String mensajePropietario = sb.toString();
 
                     emailService.enviarCorreo(correoPropietario, asuntoPropietario, mensajePropietario);
 
+                    // Correo al cliente (no borramos nada, pero agregamos condicionales)
                     String asuntoCliente = "¡Tu pago ha sido confirmado!";
-                    String mensajeCliente = String.format(
-                            "Hola %s %s,\n\n"
-                                    + "¡Gracias por tu compra en Invitarly!\n"
-                                    + "Ya estamos preparando tu invitación para la boda de %s.\n\n"
-                                    + "En breve nos pondremos en contacto contigo para confirmar cualquier detalle adicional.\n"
-                                    + "Si necesitas algo más, no dudes en escribirnos.\n\n"
-                                    + "¡Felicitaciones y gracias por confiar en nosotros!",
-                            (nombre != null ? nombre : ""),
-                            (apellido != null ? apellido : ""),
-                            (novios != null ? novios : "los novios")
-                    );
+                    StringBuilder sbCliente = new StringBuilder();
+                    sbCliente.append("Hola ").append(nombre != null ? nombre : "").append(" ").append(apellido != null ? apellido : "").append(",\n\n")
+                            .append("¡Gracias por tu compra en Invitarly!\n");
 
-                    emailService.enviarCorreo(emailCliente, asuntoCliente, mensajeCliente);
+                    String planLower = plan != null ? plan.trim().toLowerCase() : "";
+
+                    // Si el plan es XV
+                    if (planLower.equals("xv")) {
+                        sbCliente.append("Ya estamos preparando tu invitación para los 15 de ")
+                                .append(nombreQuinceanera != null ? nombreQuinceanera : "tu fiesta")
+                                .append(".\n\n");
+                    }
+                    // Si es bautismo
+                    else if (planLower.equals("bautismo")) {
+                        sbCliente.append("Ya estamos preparando tu invitación para el bautismo de ")
+                                .append(nombreBebe != null ? nombreBebe : "tu bebé")
+                                .append(".\n\n");
+                    }
+                    // Caso contrario, asumimos boda
+                    else {
+                        sbCliente.append("Ya estamos preparando tu invitación para la boda de ")
+                                .append(novios != null ? novios : "los novios")
+                                .append(".\n\n");
+                    }
+
+                    sbCliente.append("En breve nos pondremos en contacto contigo para confirmar cualquier detalle adicional.\n")
+                            .append("Si necesitas algo más, no dudes en escribirnos.\n\n")
+                            .append("¡Felicitaciones y gracias por confiar en nosotros!");
+
+                    emailService.enviarCorreo(emailCliente, asuntoCliente, sbCliente.toString());
                     logger.info("Correos enviados exitosamente para el pago ID: {}", paymentIdStr);
 
                 } else {
                     logger.info("El pago con ID {} no está aprobado. Estado actual: {}", paymentIdStr, estado);
 
-                    // Si deseas, puedes actualizar la venta a PENDING, IN_PROCESS, etc.
-                    // O dejarlo como está.
                     if (externalReference != null && externalReference.startsWith("venta-")) {
                         String ventaIdStr = externalReference.split("-")[1];
                         Long ventaId = Long.valueOf(ventaIdStr);
